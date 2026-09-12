@@ -1,0 +1,21 @@
+# Binarios y objetos del compilador de ARM
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.axf
+
+# Carpetas de salida donde la CIAA tira los ejecutables
+out/
+build/
+
+# Archivos temporales de Neovim
+*.swp
+*.swo
+*~
+
+# Basura del explorador de Windows
+Thumbs.db
+Desktop.ini
