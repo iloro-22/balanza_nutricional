@@ -1,7 +1,3 @@
-#include "fsm_balanza.h" 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
 
 
 /**
@@ -9,6 +5,13 @@
  * Se bloquea esperando mensajes en la cola y ejecuta las transiciones
  * de la balanza basándose en los eventos del sensor y la interfaz.
  */
+
+
+#include "fsm_balanza.h" 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+
  
 extern QueueHandle_t cola_eventos;
 
@@ -16,6 +19,7 @@ void task_fsm(void* taskParmPtr){
    MensajeFSM msj;
    EstadoBalanza estado_actual = REPOSO;
    float offset_tara = 0.0;
+   informacion_alimento kcal_alimento;
    
    while(1){
       
@@ -24,7 +28,7 @@ void task_fsm(void* taskParmPtr){
          
          //maxima prioridad al error
          if (msj.evento == EV_SOBRECARGA){
-            estado_actual = ESTADO_ERROR;
+            estado_actual = ERROR;
             }
       
          switch (estado_actual) {
@@ -35,9 +39,11 @@ void task_fsm(void* taskParmPtr){
                      }
                   break;
                case PESAJE_NORMAL:
-                  // actualizar_pantalla(msj.valor_peso)
                   if (msj.evento == EV_TARA){
                      estado_actual = TARA;
+                     }
+                  else if (msj.evento == EV_CAMBIO_PESO){
+                      // actualizar_pantalla(msj.valor_peso - offset_tara)
                      }
                   else if (msj.evento == EV_ALIMENTO){
                      //guardar_id_alimento_actual(msj.id_alimento)
@@ -49,30 +55,29 @@ void task_fsm(void* taskParmPtr){
                      }
                   break;
                case  TARA:
-                  //acttualizar offset_tara
-                  //avisar a pantalla que se taro
+                  offset_tara = msj.valor_peso;
+                  //avisa_pantalla_tara();
                   estado_actual = PESAJE_NORMAL;
                   break;
                
                case MODO_NUTRICIONAL:
                   
-                  //logica para calcular calorias, mostrar pantalla y esperar boton
-                  //timeout o boton volver
+                  if (msj.evento == EV_CAMBIO_PESO){
+                     //kcal_alimento = calcular_calorias(msj.valor_peso);
+                     //actualizar_pantalla(msj.valor_peso - offset_tara, kcal_alimento - offset_tara);
+                  }
+                  else if ((msj.evento == EV_TIMEOUT) || (msj.evento == EV_VOLVER)){
+                        estado_actual = REPOSO;
+                        }
                   break;
-               case  ESTADO_ERROR:
-                     //mostrar error en pantalla
+               case  ERROR:
+                     //error_pantalla();
                      if (msj.evento == EV_RETIRA_PESO){
                         estado_actual = REPOSO;
                         }
                   break;
                   
          }
-            
       }
-      
-      
-      
    }
-
-   
 }
