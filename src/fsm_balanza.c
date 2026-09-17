@@ -11,9 +11,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-
+#include "pantalla.h"
  
 extern QueueHandle_t cola_eventos;
+extern QueueHandle_t cola_pantalla;
 
 void task_fsm(void* taskParmPtr){
    MensajeFSM msj;
@@ -32,47 +33,118 @@ void task_fsm(void* taskParmPtr){
             }
       
          switch (estado_actual) {
+            
                case REPOSO:
-                  if (msj.evento ==EV_CAMBIO_PESO){
-                     // actualizar_pantalla(msj.valor_peso)
+                  
+                  if (msj.evento == EV_CAMBIO_PESO){
+                     /** msj_pantalla msj_out;
+                      * msj_out.evento = MOSTRAR_SOLO_PESO;
+                      * msj_out.peso = msj.valor_peso - offset_tara;
+                      * xQueueSend(cola_pantalla,&msj_out,0);
+                      */
                      estado_actual = PESAJE_NORMAL;
+                     }
+                  else if (msj.evento ==  EV_TARA ){
+                        offset_tara = msj.valor_peso;
+                          /** msj_pantalla msj_out;
+                        * msj_out.evento = MOSTRAR_SOLO_PESO;
+                       * msj_out.peso = 0;
+                       * xQueueSend(cola_pantalla,&msj_out,0);
+                       */
+                        estado_actual = PESAJE_NORMAL;
+                     }
+                     
+                   else if (msj.evento ==  EV_ALIMENTO ){
+                      /** 
+                        guardar_id_alimento_actual(msj.id_alimento);
+                      * msj_pantalla msj_out;
+                      * msj_out.evento = MOSTRAR_MACROS_PESO;
+                      * msj_out.peso = msj.valor_peso - offset_tara;;
+                      * xQueueSend(cola_pantalla,&msj_out,0);
+                      */
+                        estado_actual = PESAJE_NORMAL;
                      }
                   break;
                case PESAJE_NORMAL:
-                  if (msj.evento == EV_TARA){
-                     estado_actual = TARA;
-                     }
-                  else if (msj.evento == EV_CAMBIO_PESO){
-                      // actualizar_pantalla(msj.valor_peso - offset_tara)
+                  if ((msj.evento == EV_CAMBIO_PESO) ){
+
+                     /** 
+                      * msj_pantalla msj_out;
+                      * msj_out.evento = MOSTRAR_SOLO_PESO;
+                      * msj_out.peso = msj.valor_peso - offset_tara;;
+                      * xQueueSend(cola_pantalla,&msj_out,0);
+                      */
                      }
                   else if (msj.evento == EV_ALIMENTO){
-                     //guardar_id_alimento_actual(msj.id_alimento)
+                     //guardar_id_alimento_actual(msj.id_alimento);
                      estado_actual = MODO_NUTRICIONAL;
                      }
-                  else if (msj.evento == EV_TIMEOUT){
-                     //apagar_pantalla();
+                  else if (msj.evento ==  EV_TARA ){
+                        offset_tara = msj.valor_peso;
+                          /** msj_pantalla msj_out;
+                          * informacion_alimento macros_cero = {0,0,0,0};
+                           msj_out.kcal_alimento = macros_cero;
+                         * msj_out.evento = MOSTRAR_SOLO_PESO;
+                         * msj_out.peso = 0.0;
+                         * xQueueSend(cola_pantalla,&msj_out,0);
+                         */
+                  }
+                   else if (msj.evento == EV_TIMEOUT){
+                        offset_tara = 0.0;
+                      /** msj_pantalla msj_out;
+                      * msj_out.evento = REPOSO;
+                      * xQueueSend(cola_pantalla,&msj_out,0);
+                      */
                      estado_actual = REPOSO;
                      }
                   break;
-               case  TARA:
-                  offset_tara = msj.valor_peso;
-                  //avisa_pantalla_tara();
-                  estado_actual = PESAJE_NORMAL;
-                  break;
-               
+                     
                case MODO_NUTRICIONAL:
                   
-                  if (msj.evento == EV_CAMBIO_PESO){
-                     //kcal_alimento = calcular_calorias(msj.valor_peso);
-                     //actualizar_pantalla(msj.valor_peso - offset_tara, kcal_alimento - offset_tara);
+                  if ((msj.evento == EV_CAMBIO_PESO) || (msj.evento == EV_ALIMENTO)){
+
+                     /** if (msj.evento == EV_ALIMENTO) { 
+                        guardar_id_alimento_actual(msj.id_alimento);
+                      }
+                      * kcal_alimento = calcular_macros(msj.id_alimento, msj.valor_peso - offset_tara);
+                      * msj_pantalla msj_out;
+                      * msj_out.evento = MOSTRAR_MACROS_PESO;
+                      * msj_out.peso = msj.valor_peso - offset_tara;;
+                      * xQueueSend(cola_pantalla,&msj_out,0);
+                      */
                   }
-                  else if ((msj.evento == EV_TIMEOUT) || (msj.evento == EV_VOLVER)){
+                  else if (msj.evento ==  EV_TARA ){
+                        offset_tara = msj.valor_peso;
+                          /** msj_pantalla msj_out;
+                        * msj_out.evento = MOSTRAR_MACROS_PESO;
+                       * msj_out.kcal_alimento = kcal_alimento;
+                       * msj_out.peso = 0;
+                       * xQueueSend(cola_pantalla,&msj_out,0);
+                       */
+                  }
+                  else if (msj.evento == EV_VOLVER){
+                     estado_actual = PESAJE_NORMAL;
+                  } 
+                  else if (msj.evento == EV_TIMEOUT){
+                        offset_tara = 0.0;
+                         /** msj_pantalla msj_out;
+                      * msj_out.evento = REPOSO;
+                      * xQueueSend(cola_pantalla,&msj_out,0);
+                      */
                         estado_actual = REPOSO;
                         }
                   break;
                case  ERROR:
-                     //error_pantalla();
+                     /**msj_pantalla msj_out;
+                      * msj_out.evento = ERROR;
+                      * xQueueSend(cola_pantalla,&msj_out,0);
+                     */
                      if (msj.evento == EV_RETIRA_PESO){
+                        offset_tara = 0.0;
+                         /** msj_pantalla msj_out;
+                      * msj_out.evento = REPOSO;
+                      * xQueueSend(cola_pantalla,&msj_out,0);
+                      */
                         estado_actual = REPOSO;
                         }
                   break;
