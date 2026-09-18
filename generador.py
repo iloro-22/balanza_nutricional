@@ -1,4 +1,4 @@
-import csv
+buimport csv
 
 codigo_c = """// Archivo autogenerado - NO EDITAR A MANO
 #include "alimentos.h"

@@ -11,8 +11,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-#include "pantalla.h"
- 
+#include "pantalla_spi.h"
+#include "alimentos.h"
+#include "calculo_nutricional.h"
+
 extern QueueHandle_t cola_eventos;
 extern QueueHandle_t cola_pantalla;
 
@@ -29,7 +31,7 @@ void task_fsm(void* taskParmPtr){
          
          //maxima prioridad al error
          if (msj.evento == EV_SOBRECARGA){
-            estado_actual = ERROR;
+            estado_actual = ESTADO_ERROR;
             }
       
          switch (estado_actual) {
@@ -134,7 +136,7 @@ void task_fsm(void* taskParmPtr){
                         estado_actual = REPOSO;
                         }
                   break;
-               case  ERROR:
+               case  ESTADO_ERROR:
                      /**msj_pantalla msj_out;
                       * msj_out.evento = ERROR;
                       * xQueueSend(cola_pantalla,&msj_out,0);
