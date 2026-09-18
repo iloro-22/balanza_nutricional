@@ -6,7 +6,7 @@ typedef enum {
    PESAJE_NORMAL,
    TARA,
    MODO_NUTRICIONAL,
-   ERROR
+   ESTADO_ERROR
 } EstadoBalanza;
 
 typedef enum {
@@ -18,12 +18,6 @@ typedef enum {
    EV_RETIRA_PESO = 6,
    EV_VOLVER = 7
 } EventoBalanza;
-
-typedef struct {
-   float proteinas;
-   float carbohidratos;
-   float grasas;
-} informacion_alimento;
 
 typedef struct {
    EventoBalanza evento;
