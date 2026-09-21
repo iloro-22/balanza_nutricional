@@ -20,6 +20,7 @@ extern QueueHandle_t cola_pantalla;
 
 void task_fsm(void* taskParmPtr){
    MensajeFSM msj;
+   uint8_t id_alimento = 0;
    EstadoBalanza estado_actual = REPOSO;
    float offset_tara = 0.0;
    informacion_alimento kcal_alimento;
@@ -106,13 +107,14 @@ void task_fsm(void* taskParmPtr){
                   if ((msj.evento == EV_CAMBIO_PESO) || (msj.evento == EV_ALIMENTO)){
 
                      /** if (msj.evento == EV_ALIMENTO) { 
-                        guardar_id_alimento_actual(msj.id_alimento);
+                        id_alimento = msj.id_alimento);
                       }
                       * kcal_alimento = calcular_macros(msj.id_alimento, msj.valor_peso - offset_tara);
                       * msj_pantalla msj_out;
                       * msj_out.evento = MOSTRAR_MACROS_PESO;
-                      * msj_out.peso = msj.valor_peso - offset_tara;;
+                      * msj_out.peso = msj.valor_peso - offset_tara;
                       * xQueueSend(cola_pantalla,&msj_out,0);
+                      * esp_enviar_macros(id_alimento,msj.valor_peso - offset_tara, kcal_alimento);
                       */
                   }
                   else if (msj.evento ==  EV_TARA ){
