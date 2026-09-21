@@ -1,6 +1,5 @@
 /**
- * @file calculo_nutricional.c
- * @brief Lógica de procesamiento de datos nutricionales y escalado de macros.
+ * Lógica de procesamiento de datos nutricionales y escalado de macros.
  * 
  * ============================================================================
  * NOTAS DE ARQUITECTURA Y GESTIÓN DE MEMORIA
@@ -16,9 +15,6 @@
  *    recibe un 'id_alimento' (entero) desde la interfaz, lo usa como índice para 
  *    acceder a la memoria Flash en tiempo constante O(1), y devuelve la matemática.
  * 
- * 3. REGLA DE TRES: Los valores nutricionales en tabla_base están normalizados 
- *    cada 100 gramos. El algoritmo calcula un factor multiplicador en base al 
- *    peso neto actual para escalar los macronutrientes en tiempo real.
  * ============================================================================
  */
 
