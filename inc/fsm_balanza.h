@@ -36,9 +36,9 @@ typedef enum {
 } ComandoPantalla_t;
 
 typedef struct {
-    ComandoPantalla_t evento;             // ¿Qué tiene que hacer la pantalla?
-    float peso;                           // El peso actual para dibujar (si aplica)
-    informacion_alimento kcal_alimento;   // Los macros calculados (solo se usa en MODO_NUTRICIONAL)
+    ComandoPantalla_t evento;            
+    float peso;                           
+    informacion_alimento kcal_alimento; 
 } msj_pantalla;
 
 typedef struct {
