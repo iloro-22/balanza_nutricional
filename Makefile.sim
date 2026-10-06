@@ -1,0 +1,25 @@
+CC = gcc
+CFLAGS = -Wall -I. -Iinc -Isim
+LIBS = -lSDL2 -lpthread
+
+SRCS = src/main.c src/ili9341.c sim/sdl_bridge.c
+OBJS = $(SRCS:.c=.o)
+TARGET = balanza_sim
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $(TARGET) $(LIBS)
+	@echo "--------------------------------------------------------"
+	@echo " Compilacion exitosa! Ejecuta con: ./$(TARGET)"
+	@echo "--------------------------------------------------------"
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+src/ili9341.o: inc/font8x8.h
+
+clean:
+	rm -f $(OBJS) $(TARGET) src/*.o sim/*.o
+
+.PHONY: all clean

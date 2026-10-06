@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <sapi.h>
 #include "ssp1.h"
+#include "font8x8.h"
 
 /*Definicion de Pines*/
 #define ILI9341_CS GPIO0
@@ -24,8 +25,11 @@
 void writeCommand(uint8_t cmd);
 void writeData(uint8_t data);
 void ILI9341_init(void);
-void ILI9341_setAdressWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
+void ILI9341_setAddressWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 void ILI9341_drawPixel(uint16_t x, uint16_t y, uint16_t color);
 void ILI9341_fillScreen(uint16_t color);
-
+void ILI9341_fillRect (uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+void ILI9341_drawRect (uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+void ILI9341_drawChar(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg);
+void ILI9341_drawString(uint16_t x, uint16_t y, const char *str, uint16_t color, uint16_t bg);
 #endif /* ILI9341_H */
