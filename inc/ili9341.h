@@ -2,7 +2,7 @@
 #define ILI9341_H
 
 #include <stdint.h>
-#include <sapi.h>
+#include "sapi.h"
 #include "ssp1.h"
 #include "font8x8.h"
 

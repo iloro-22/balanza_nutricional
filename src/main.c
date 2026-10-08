@@ -2,26 +2,48 @@
 #include "ili9341.h"
 #include "FreeRTOS.h"
 #include "task.h"
-
-/* Tarea de prueba para el Display */
+#include "xpt2046.h"
+#include <stdio.h>
+/* Tarea de prueba para el Display y Táctil */
 void task_ili9341_test(void *pvParameters)
 {
-    /* 1. Inicializar controlador ILI9341 (SPI + GPIOs) */
+    /* 1. Inicializar controlador ILI9341 */
     ILI9341_init();
     ILI9341_fillScreen(ILI9341_BLUE);
+    /* 2. Dibujar el botón inicial (se dibuja una sola vez) */
+    ILI9341_drawRect(70, 140, 100, 40, ILI9341_WHITE);
+    ILI9341_fillRect(71, 141, 98, 38, ILI9341_RED);
+    ILI9341_drawString(82, 156, "PRESIONAR", ILI9341_WHITE, ILI9341_RED);
+    bool presionado = false;
     while (1) {
-        
-        ILI9341_drawRect(10, 10, 100, 50, ILI9341_WHITE);
-        ILI9341_fillRect(11, 11, 98, 48, ILI9341_RED);
-        ILI9341_drawString(20, 30, "Hola Mundo!", ILI9341_WHITE, ILI9341_RED);
-        vTaskDelay(pdMS_TO_TICKS(2000));
-        
+        /* 3. Evaluar estado del táctil */
+        if (XPT2046_isPress()) {
+            uint16_t x, y;
+            if (XPT2046_getTouch(&x, &y)) {
+                if (!presionado) {
+                    // Si es un nuevo toque, cambiamos el botón a VERDE
+                    ILI9341_fillRect(71, 141, 98, 38, ILI9341_GREEN);
+                    ILI9341_drawString(88, 156, "TOCADO!", ILI9341_WHITE, ILI9341_GREEN);
+                    presionado = true;
+                }
+            }
+        } else {
+            if (presionado) {
+                // Al soltar el toque, vuelve a ROJO
+                ILI9341_fillRect(71, 141, 98, 38, ILI9341_RED);
+                ILI9341_drawString(82, 156, "PRESIONAR", ILI9341_WHITE, ILI9341_RED);
+                presionado = false;
+            }
+        }
+
+        /* CLAVE: Refresca el simulador de SDL y cede CPU a FreeRTOS */
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
 
 int main(void)
 {
-    /* Inicialización de la EDU-CIAA */
+    /* Inicialización de la EDU-CIAA / Simulador */
     boardConfig();
 
     /* Crear la tarea del display en FreeRTOS */
@@ -34,10 +56,9 @@ int main(void)
         NULL
     );
 
-    /* Iniciar el Scheduler de FreeRTOS */
+    /* Iniciar el Scheduler */
     vTaskStartScheduler();
 
-    /* Si llega acá, hubo un error de memoria en el Heap */
     while (1);
     return 0;
 }

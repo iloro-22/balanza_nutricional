@@ -1,118 +1,230 @@
 #include <SDL2/SDL.h>
-#include <pthread.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-
 #include "sapi.h"
-#include "ssp1.h"
-#include "FreeRTOS.h"
-#include "task.h"
+#include "ili9341.h"
+#include "xpt2046.h"
 
-#define SCREEN_WIDTH  240
-#define SCREEN_HEIGHT 320
-#define SCALE_FACTOR  2  // Escala x2 (480x640 px) para fácil lectura en PC
+#define DISPLAY_WIDTH   240
+#define DISPLAY_HEIGHT  320
+#define SCALE_FACTOR    2   // Escala para ver la pantalla 2x mas grande en la PC
 
-static uint32_t framebuffer[SCREEN_HEIGHT][SCREEN_WIDTH];
-static pthread_mutex_t fb_mutex = PTHREAD_MUTEX_INITIALIZER;
+static SDL_Window *window = NULL;
+static SDL_Renderer *renderer = NULL;
+static SDL_Texture *texture = NULL;
+static uint32_t framebuffer[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 
-// Estado del ILI9341 simulado
-static uint8_t dc_pin_state = OFF;
-static uint8_t current_cmd = 0;
-static uint8_t cmd_byte_idx = 0;
+// Variables para simular el tactil
+static bool sim_touch_pressed = false;
+static uint16_t sim_touch_x = 0;
+static uint16_t sim_touch_y = 0;
 
-static uint16_t window_x0 = 0, window_x1 = SCREEN_WIDTH - 1;
-static uint16_t window_y0 = 0, window_y1 = SCREEN_HEIGHT - 1;
-static uint16_t curr_x = 0, curr_y = 0;
+// Variables para emular el controlador grafico ILI9341 via SPI
+static uint8_t sim_dc = 0;          // 0 = Comando, 1 = Datos
+static uint8_t sim_cmd = 0;         // Ultimo comando recibido
+static int sim_param_count = 0;     // Contador de parametros del comando
 
-static uint8_t color_high_byte = 0;
-static bool waiting_low_byte = false;
+static uint16_t win_x1 = 0, win_x2 = DISPLAY_WIDTH - 1;
+static uint16_t win_y1 = 0, win_y2 = DISPLAY_HEIGHT - 1;
+static uint16_t cur_x = 0, cur_y = 0;
 
-// Mock de sAPI
+static uint8_t msb_byte = 0;
+static bool is_msb = true;
+
+// Inicializacion de la ventana SDL2
+bool sdl_init(void) {
+    if (window != NULL) return true;
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("[SDL ERROR] No se pudo inicializar SDL: %s\n", SDL_GetError());
+        return false;
+    }
+
+    window = SDL_CreateWindow(
+        "Simulador Balanza Nutricional (ILI9341 + XPT2046)",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        DISPLAY_WIDTH * SCALE_FACTOR,
+        DISPLAY_HEIGHT * SCALE_FACTOR,
+        SDL_WINDOW_SHOWN
+    );
+
+    if (!window) {
+        printf("[SDL ERROR] No se pudo crear la ventana: %s\n", SDL_GetError());
+        return false;
+    }
+
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!renderer) {
+        renderer = SDL_CreateRenderer(window, -1, 0);
+    }
+
+    texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        DISPLAY_WIDTH,
+        DISPLAY_HEIGHT
+    );
+
+    for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT; i++) {
+        framebuffer[i] = 0xFF000000;
+    }
+
+    printf("[SIMULADOR] Ventana de pantalla inicializada (%dx%d px)\n", DISPLAY_WIDTH * SCALE_FACTOR, DISPLAY_HEIGHT * SCALE_FACTOR);
+    return true;
+}
+
+// Procesa eventos de SDL (mouse y ventana)
+void sdl_poll_events(void) {
+    if (!window) return;
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            SDL_DestroyTexture(texture);
+            SDL_DestroyRenderer(renderer);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            exit(0);
+        }
+        else if (event.type == SDL_MOUSEBUTTONDOWN) {
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                sim_touch_pressed = true;
+                sim_touch_x = event.button.x / SCALE_FACTOR;
+                sim_touch_y = event.button.y / SCALE_FACTOR;
+            }
+        }
+        else if (event.type == SDL_MOUSEMOTION) {
+            if (sim_touch_pressed) {
+                sim_touch_x = event.motion.x / SCALE_FACTOR;
+                sim_touch_y = event.motion.y / SCALE_FACTOR;
+            }
+        }
+        else if (event.type == SDL_MOUSEBUTTONUP) {
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                sim_touch_pressed = false;
+            }
+        }
+    }
+}
+
+// Coloca un pixel en el framebuffer de SDL2 (RGB565 -> ARGB8888)
+void sdl_put_pixel(uint16_t x, uint16_t y, uint16_t color565) {
+    if (x >= DISPLAY_WIDTH || y >= DISPLAY_HEIGHT) return;
+
+    uint8_t r = (color565 >> 11) & 0x1F;
+    uint8_t g = (color565 >> 5)  & 0x3F;
+    uint8_t b = color565         & 0x1F;
+
+    r = (r * 255) / 31;
+    g = (g * 255) / 63;
+    b = (b * 255) / 31;
+
+    framebuffer[y * DISPLAY_WIDTH + x] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+}
+
+// Refresca la pantalla en la PC
+void sdl_refresh(void) {
+    if (!window) return;
+    sdl_poll_events();
+    SDL_UpdateTexture(texture, NULL, framebuffer, DISPLAY_WIDTH * sizeof(uint32_t));
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+}
+
+// ============================================================================
+//   EMULACION DEL BUS SPI Y PINES PARA EL CONTROLADOR ILI9341
+// ============================================================================
+
 void boardConfig(void) {
-    printf("[SIM] Inicializando EDU-CIAA (Modo Simulador SDL2)...\n");
+    sdl_init();
 }
 
 void gpioInit(uint8_t pin, uint8_t direction) {}
 
+#ifndef ILI9341_DC
+    #ifdef ILI9341_GPIO_DC
+        #define ILI9341_DC ILI9341_GPIO_DC
+    #elif defined(LCD_DC)
+        #define ILI9341_DC LCD_DC
+    #endif
+#endif
+
 void gpioWrite(uint8_t pin, uint8_t value) {
-    if (pin == GPIO1) { // ILI9341_DC
-        dc_pin_state = value;
+#ifdef ILI9341_DC
+    if (pin == ILI9341_DC) {
+        sim_dc = value;
     }
+#else
+    #ifdef ILI9341_CS
+    if (pin != ILI9341_CS) {
+        sim_dc = value;
+    }
+    #else
+    sim_dc = value;
+    #endif
+#endif
 }
 
-void delay(uint32_t duration_ms) {
-    usleep(duration_ms * 1000);
+bool gpioRead(uint8_t pin) {
+    return false;
 }
 
-// Mock de SSP1
-void SSP1_Init(void) {
-    printf("[SIM] Bus SPI (SSP1) Inicializado.\n");
+void delay(uint32_t ms) {
+    sdl_refresh();
+    SDL_Delay(ms);
 }
 
+void SSP1_Init(void) {}
+void SSP1_change_format(uint8_t bits) {}
+
+// Procesa cada byte transmitido por la libreria ili9341.c
 uint8_t SSP1_transfer_byte(uint8_t byte) {
-    if (dc_pin_state == OFF) {
-        // Es un COMANDO
-        current_cmd = byte;
-        cmd_byte_idx = 0;
-        waiting_low_byte = false;
-
-        if (current_cmd == 0x2C) { // RAMWR
-            curr_x = window_x0;
-            curr_y = window_y0;
-        }
+    if (sim_dc == 0) {
+        // Es un Comando de la pantalla
+        sim_cmd = byte;
+        sim_param_count = 0;
+        is_msb = true;
     } else {
-        // Es un DATO
-        switch (current_cmd) {
-            case 0x2A: // CASET
-                if (cmd_byte_idx == 0) window_x0 = (window_x0 & 0x00FF) | (byte << 8);
-                else if (cmd_byte_idx == 1) window_x0 = (window_x0 & 0xFF00) | byte;
-                else if (cmd_byte_idx == 2) window_x1 = (window_x1 & 0x00FF) | (byte << 8);
-                else if (cmd_byte_idx == 3) window_x1 = (window_x1 & 0xFF00) | byte;
-                cmd_byte_idx++;
+        // Son Datos enviados a la pantalla
+        switch (sim_cmd) {
+            case 0x2A: // Setear ventana de columnas (X)
+                if (sim_param_count == 0) win_x1 = (byte << 8);
+                else if (sim_param_count == 1) { win_x1 |= byte; cur_x = win_x1; }
+                else if (sim_param_count == 2) win_x2 = (byte << 8);
+                else if (sim_param_count == 3) win_x2 |= byte;
+                sim_param_count++;
                 break;
 
-            case 0x2B: // PASET
-                if (cmd_byte_idx == 0) window_y0 = (window_y0 & 0x00FF) | (byte << 8);
-                else if (cmd_byte_idx == 1) window_y0 = (window_y0 & 0xFF00) | byte;
-                else if (cmd_byte_idx == 2) window_y1 = (window_y1 & 0x00FF) | (byte << 8);
-                else if (cmd_byte_idx == 3) window_y1 = (window_y1 & 0xFF00) | byte;
-                cmd_byte_idx++;
+            case 0x2B: // Setear ventana de filas (Y)
+                if (sim_param_count == 0) win_y1 = (byte << 8);
+                else if (sim_param_count == 1) { win_y1 |= byte; cur_y = win_y1; }
+                else if (sim_param_count == 2) win_y2 = (byte << 8);
+                else if (sim_param_count == 3) win_y2 |= byte;
+                sim_param_count++;
                 break;
 
-            case 0x2C: // RAMWR (Escritura de Píxeles)
-                if (!waiting_low_byte) {
-                    color_high_byte = byte;
-                    waiting_low_byte = true;
+            case 0x2C: // Escritura de pixeles en memoria (RAMWR)
+            case 0x3C:
+                if (is_msb) {
+                    msb_byte = byte;
+                    is_msb = false;
                 } else {
-                    uint8_t color_low_byte = byte;
-                    waiting_low_byte = false;
-
-                    uint16_t rgb565 = (color_high_byte << 8) | color_low_byte;
-
-                    // Convertir RGB565 a RGB888 (ARGB32 para SDL)
-                    uint8_t r = ((rgb565 >> 11) & 0x1F) * 255 / 31;
-                    uint8_t g = ((rgb565 >> 5)  & 0x3F) * 255 / 63;
-                    uint8_t b = (rgb565 & 0x1F)        * 255 / 31;
-
-                    uint32_t pixel32 = (0xFF << 24) | (r << 16) | (g << 8) | b;
-
-                    pthread_mutex_lock(&fb_mutex);
-                    if (curr_x < SCREEN_WIDTH && curr_y < SCREEN_HEIGHT) {
-                        framebuffer[curr_y][curr_x] = pixel32;
+                    uint16_t color565 = (msb_byte << 8) | byte;
+                    sdl_put_pixel(cur_x, cur_y, color565);
+                    cur_x++;
+                    if (cur_x > win_x2) {
+                        cur_x = win_x1;
+                        cur_y++;
+                        if (cur_y > win_y2) cur_y = win_y1;
                     }
-                    pthread_mutex_unlock(&fb_mutex);
-
-                    curr_x++;
-                    if (curr_x > window_x1) {
-                        curr_x = window_x0;
-                        curr_y++;
-                        if (curr_y > window_y1) {
-                            curr_y = window_y0;
-                        }
-                    }
+                    is_msb = true;
                 }
+                sim_param_count++;
                 break;
 
             default:
@@ -122,88 +234,46 @@ uint8_t SSP1_transfer_byte(uint8_t byte) {
     return 0;
 }
 
-// Mock de FreeRTOS
-void vTaskDelay(TickType_t xTicksToDelay) {
-    usleep(xTicksToDelay * 1000);
+// ============================================================================
+//   EMULACION DEL TACTIL XPT2046
+// ============================================================================
+
+bool XPT2046_isPress(void) {
+    sdl_poll_events();
+    return sim_touch_pressed;
 }
 
-typedef struct {
-    TaskFunction_t func;
-    void *param;
-} TaskWrapperArgs;
-
-static void* task_pthread_wrapper(void* arg) {
-    TaskWrapperArgs *targs = (TaskWrapperArgs*)arg;
-    targs->func(targs->param);
-    free(targs);
-    return NULL;
+bool XPT2046_getTouch(uint16_t *x, uint16_t *y) {
+    sdl_poll_events();
+    if (!sim_touch_pressed) return false;
+    if (x) *x = sim_touch_x;
+    if (y) *y = sim_touch_y;
+    return true;
 }
 
-int xTaskCreate(TaskFunction_t pvTaskCode, const char * const pcName, uint16_t usStackDepth, void *pvParameters, uint32_t uxPriority, TaskHandle_t *pxCreatedTask) {
-    pthread_t thread;
-    TaskWrapperArgs *targs = malloc(sizeof(TaskWrapperArgs));
-    targs->func = pvTaskCode;
-    targs->param = pvParameters;
+// ============================================================================
+//   MOCK DE FREERTOS
+// ============================================================================
 
-    if (pthread_create(&thread, NULL, task_pthread_wrapper, targs) != 0) {
-        printf("[SIM ERROR] Error al crear hilo para tarea: %s\n", pcName);
-        return 0;
-    }
-    printf("[SIM] Tarea FreeRTOS iniciada en segundo plano: '%s'\n", pcName);
-    return 1;
+static void (*saved_task)(void*) = NULL;
+static void *saved_param = NULL;
+
+void xTaskCreate(void (*task)(void*), const char *name, uint16_t stack, void *param, uint32_t priority, void *handle) {
+    saved_task = task;
+    saved_param = param;
+}
+
+void vTaskDelay(uint32_t ticks) {
+    sdl_refresh();
+    SDL_Delay(20);
 }
 
 void vTaskStartScheduler(void) {
-    printf("[SIM] Iniciando FreeRTOS Scheduler (Ventana SDL2 active)...\n");
-
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("[SIM ERROR] Error al inicializar SDL2: %s\n", SDL_GetError());
-        return;
+    if (saved_task) {
+        saved_task(saved_param);
     }
-
-    SDL_Window *window = SDL_CreateWindow(
-        "Balanza Nutricional - Simulador ILI9341",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        SCREEN_WIDTH * SCALE_FACTOR,
-        SCREEN_HEIGHT * SCALE_FACTOR,
-        SDL_WINDOW_SHOWN
-    );
-
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_Texture *texture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING,
-        SCREEN_WIDTH,
-        SCREEN_HEIGHT
-    );
-
-    bool running = true;
-    SDL_Event event;
-
-    while (running) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = false;
-            }
-        }
-
-        pthread_mutex_lock(&fb_mutex);
-        SDL_UpdateTexture(texture, NULL, framebuffer, SCREEN_WIDTH * sizeof(uint32_t));
-        pthread_mutex_unlock(&fb_mutex);
-
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
-
-        SDL_Delay(16); // ~60 FPS
+    while (1) {
+        sdl_refresh();
+        SDL_Delay(20);
     }
-
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    printf("[SIM] Simulador cerrado.\n");
-    exit(0);
 }
