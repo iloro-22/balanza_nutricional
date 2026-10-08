@@ -1,9 +1,22 @@
-#include "sapi.h"
-#include "ili9341.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "xpt2046.h"
-#include <stdio.h>
+
+
+
+
+
+
+/*
+
+
+
+    MAIN PARA SIMULAR LA PANTALLA Y PROBAR LOS MENUS
+
+
+
+*/
+
+
+
+#include "main.h"
 /* Tarea de prueba para el Display y Táctil */
 void task_ili9341_test(void *pvParameters)
 {

@@ -9,7 +9,7 @@ typedef enum {
    ESTADO_ERROR
 } EstadoBalanza;
 
-typedef enum {
+extern typedef enum {
    EV_SOBRECARGA = 1,
    EV_ALIMENTO = 2,
    EV_CAMBIO_PESO = 3,
@@ -19,7 +19,7 @@ typedef enum {
    EV_VOLVER = 7
 } EventoBalanza;
 
-typedef struct {
+extern typedef struct {
    EventoBalanza evento;
    float valor_peso;
    uint8_t id_alimento;

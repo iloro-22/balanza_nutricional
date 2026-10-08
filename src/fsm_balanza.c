@@ -1,9 +1,9 @@
 
 
 /**
- * Tarea principal de la Máquina de Estados (FSM).
+ * Tarea principal de la Mï¿½quina de Estados (FSM).
  * Se bloquea esperando mensajes en la cola y ejecuta las transiciones
- * de la balanza basándose en los eventos del sensor y la interfaz.
+ * de la balanza basï¿½ndose en los eventos del sensor y la interfaz.
  */
 
 
