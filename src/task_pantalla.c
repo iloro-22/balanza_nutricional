@@ -58,7 +58,7 @@ void ui_marco_der(void) {
     ILI9341_drawRect(MENU_DER_X, MENU_DER_Y, MENU_DER_W, MENU_DER_H, ILI9341_COLOR_WHITE);
 }
 
-void ui_menu_derecha_seleccion_alimentos(void) {
+void ui_menu_derecha_seleccion_alimentos(EstadoUI estado) {
     ILI9341_drawRect(BTN_ALIM1_X, BTN_ALIM1_Y, BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
     ILI9341_drawRect(BTN_ALIM2_X, BTN_ALIM2_Y, BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
     ILI9341_drawRect(BTN_ALIM3_X, BTN_ALIM3_Y, BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
@@ -104,36 +104,63 @@ void task_pantalla(void *pvParameters) {
     extern MensajeFSM msj;
     ILI9341_init();
     ui_pantalla_reposo();
-    
     while (1) {
         if (xQueueReceive(cola_pantalla, &msj, 30) == pdTRUE) {
             switch (msj.evento) {
-               case REPOSO:
-                  ui_marco_izq();
-                  ui_marco_der();
-                  ui_dibujar_botonera(estado_ui);
-                  ui_dibujar_encabezado("REPOSO");
-                  ui_pantalla_pesaje_base();
-                  estado_ui = UI_ESTADO_REPOSO;
-                  break;
-               case PESAJE_NORMAL:
-                  ui_peso(msj.valor_peso);
-                  estado_ui = UI_ESTADO_PESAJE_NORMAL;
-                  break;
-               case TARA:
-                  ui_mostrar_tara();
-                  estado_ui = UI_ESTADO_TARA;
-                  break;
-               case MODO_NUTRICIONAL:
-                  ui_menu_derecha_macros(msj.valor_peso);
-                  estado_ui = UI_ESTADO_MODO_NUTRICIONAL;
-                  break;
-               case ESTADO_ERROR:
-                  ui_mostrar_error("SOBRECARGA");
-                  estado_ui = UI_ESTADO_ERROR;
-                  break;    
-            }
-        } // Espera a que se reciba un nuevo estado de la cola
 
+    case REPOSO:
+        ui_pantalla_reposo();
+        estado_ui = UI_ESTADO_REPOSO;
+        break;
+
+    case PESAJE_NORMAL:
+        // Si venimos de otra pantalla (ej. Reposo o Menú), armamos la escena completa
+        if (estado_ui != UI_ESTADO_PESAJE_NORMAL) {
+            ui_pantalla_pesaje_base(msj.valor_peso);
+            estado_ui = UI_ESTADO_PESAJE_NORMAL;
+        } else {
+            // Si ya estamos en pesaje normal y solo llega una nueva medición,
+            // actualizamos ÚNICAMENTE los dígitos para evitar parpadeo
+            ui_peso(msj.valor_peso);
+        }
+        break;
+
+    case TARA:
+        ui_mostrar_tara();
+        estado_ui = UI_ESTADO_TARA;
+        break;
+
+    case SELECCION_ALIMENTO:
+        if (estado_ui != UI_ESTADO_SELECCION_ALIMENTO) {
+            ui_dibujar_encabezado("SELECCIONAR ALIMENTO");
+            ui_menu_derecha_seleccion_alimentos();
+            ui_dibujar_botonera(UI_ESTADO_SELECCION_ALIMENTO);
+            estado_ui = UI_ESTADO_SELECCION_ALIMENTO;
+        }
+        // Si el peso varía mientras navega la lista, actualizamos el visor izquierdo
+        ui_peso(msj.valor_peso);
+        break;
+
+    case MODO_NUTRICIONAL:
+        if (estado_ui != UI_ESTADO_MODO_NUTRICIONAL) {
+            ui_dibujar_encabezado("INFO NUTRICIONAL");
+            ui_dibujar_botonera(UI_ESTADO_MODO_NUTRICIONAL);
+            estado_ui = UI_ESTADO_MODO_NUTRICIONAL;
+        }
+        // Actualizamos tanto los gramos como los valores calculados de la tabla
+        ui_peso(msj.valor_peso);
+        ui_menu_derecha_macros(msj.valor_peso);
+        break;
+
+    case ESTADO_ERROR:
+        ui_mostrar_error("SOBRECARGA");
+        estado_ui = UI_ESTADO_ERROR;
+        break;
+
+    default:
+        break;
+}
+        }
+        if ()
     }
 }

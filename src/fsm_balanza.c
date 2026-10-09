@@ -39,11 +39,11 @@ void task_fsm(void* taskParmPtr){
                case REPOSO:
                   
                   if (msj.evento == EV_CAMBIO_PESO){
-                     /** msj_pantalla msj_out;
+                     msj_pantalla msj_out;
                       * msj_out.evento = MOSTRAR_SOLO_PESO;
                       * msj_out.peso = msj.valor_peso - offset_tara;
                       * xQueueSend(cola_pantalla,&msj_out,0);
-                      */
+                     
                      estado_actual = PESAJE_NORMAL;
                      }
                   else if (msj.evento ==  EV_TARA ){
