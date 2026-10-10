@@ -1,9 +1,9 @@
 
 
 /**
- * Tarea principal de la Máquina de Estados (FSM).
+ * Tarea principal de la Mï¿½quina de Estados (FSM).
  * Se bloquea esperando mensajes en la cola y ejecuta las transiciones
- * de la balanza basándose en los eventos del sensor y la interfaz.
+ * de la balanza basï¿½ndose en los eventos del sensor y la interfaz.
  */
 
 
@@ -22,7 +22,7 @@ void task_fsm(void* taskParmPtr){
    uint8_t id_alimento = 0;
    EstadoBalanza estado_actual = REPOSO;
    informacion_alimento kcal_alimento;
-   
+   msj_pantalla msj_out;
    while(1){
       
       //La tarea se duerme aca hasta que alguien mande un msj
@@ -38,19 +38,20 @@ void task_fsm(void* taskParmPtr){
                case REPOSO:
                   
                   if (msj.evento == EV_TOQUE_PANTALLA){
-                        msj_pantalla msj_out;
+
                         msj_out.evento = CMD_MOSTRAR_SOLO_PESO;
                         msj_out.peso = msj.valor_peso;
                         xQueueSend(cola_pantalla,&msj_out,0);
                         vTaskResume(handle_sensor_peso);
-                     estado_actual = PESAJE_NORMAL;
+                        estado_actual = PESAJE_NORMAL;
+
                      }
                   break;
                      
                case PESAJE_NORMAL:
                   if ((msj.evento == EV_CAMBIO_PESO) ){
                      
-                      msj_pantalla msj_out;
+                      msj_out;
                       msj_out.evento = CMD_MOSTRAR_SOLO_PESO;
                       msj_out.peso = msj.valor_peso;
                       xQueueSend(cola_pantalla,&msj_out,0);
@@ -62,7 +63,7 @@ void task_fsm(void* taskParmPtr){
                      }
                   else if (msj.evento ==  EV_TARA ){
                            hx711_tara();
-                           msj_pantalla msj_out;
+                           msj_out;
                            informacion_alimento macros_cero = {0,0,0,0};
                            msj_out.kcal_alimento = macros_cero;
                            msj_out.evento = CMD_MOSTRAR_SOLO_PESO;
@@ -71,7 +72,7 @@ void task_fsm(void* taskParmPtr){
                   }
                    else if (msj.evento == EV_TIMEOUT){
                         offset_tara = 0.0;
-                        msj_pantalla msj_out;
+                        msj_out;
                         msj_out.evento = CMD_AHORRO;
                        xQueueSend(cola_pantalla,&msj_out,0);
                        vTaskSuspend(handle_sensor_peso);
@@ -79,22 +80,9 @@ void task_fsm(void* taskParmPtr){
                      }
                      else if (msj.evento == EV_INICIAR_CALIBRACION) {
                         estado_actual = ESTADO_CALIBRACION;
-                        
-                        
-                        // la pantalla dibuja "Por favor suelte la pantalla, tarando..."
-                        msj_pantalla msj_out;
-                        msj_out.evento = CMD_DIBUJAR_TARA;
-                        xQueueSend(cola_pantalla, &msj_out, 0);
-                         
-                         // le da 2 segundos al usuario para que saque la mano y la balanza se estabilice
-                         vTaskDelay(pdMS_TO_TICKS(2000));
-                         
-                         //tara automáticamente por defecto
-                         hx711_tara(); 
-                         
-                         //le manda a la pantalla que pida el peso guia
-                         msj_out.evento = CMD_PEDIR_PESO;
-                         xQueueSend(cola_pantalla,&msj_out,0);
+                        msj_out;
+                        msj_out.evento = CMD_PEDIR_PESO;
+                        xQueueSend(cola_pantalla,&msj_out,0);
             }
                   break;
                      
@@ -106,7 +94,7 @@ void task_fsm(void* taskParmPtr){
                         id_alimento = msj.id_alimento);
                       }
                       kcal_alimento = calcular_macros(msj.id_alimento, msj.valor_peso);
-                      msj_pantalla msj_out;
+                      msj_out;
                       msj_out.evento = CMD_MOSTRAR_MACROSyPESO;
                       msj_out.peso = msj.valor_peso;
                       xQueueSend(cola_pantalla,&msj_out,0);
@@ -114,7 +102,7 @@ void task_fsm(void* taskParmPtr){
                   }
                   else if (msj.evento ==  EV_TARA ){
                           hx711_tara();
-                          msj_pantalla msj_out;
+                          msj_out;
                           msj_out.evento = CMD_MOSTRAR_MACROSyPESO;
                           msj_out.kcal_alimento = kcal_alimento;
                           msj_out.peso = 0;
@@ -124,7 +112,7 @@ void task_fsm(void* taskParmPtr){
                      estado_actual = PESAJE_NORMAL;
                   } 
                   else if (msj.evento == EV_TIMEOUT){
-                         msj_pantalla msj_out;
+                        msj_out;
                         msj_out.evento = CMD_AHORRO;
                         xQueueSend(cola_pantalla,&msj_out,0);
                         vTaskSuspend(handle_sensor_peso);
@@ -139,21 +127,21 @@ void task_fsm(void* taskParmPtr){
                       // le da 2 segundos al usuario para que saque la mano y la balanza se estabilice
                       vTaskDelay(pdMS_TO_TICKS(2000));
                       
-                      //tara automáticamente por defecto
+                      //tara automï¿½ticamente por defecto
                       hx711_tara(); 
                       
                       //le manda a la pantalla que pida el peso guia
-                      msj_pantalla msj_out;
+                      msj_out;
                       msj_out.evento = CMD_PEDIR_PESO;
                       xQueueSend(cola_pantalla,&msj_out,0);
             }
             break;
                case  ESTADO_ERROR:
-                       msj_pantalla msj_out;
+                       msj_out;
                        msj_out.evento = CMD_ERROR;
                        xQueueSend(cola_pantalla,&msj_out,0);
                      if (msj.evento == EV_RETIRA_PESO){
-                        msj_pantalla msj_out;
+                        msj_out;
                         msj_out.evento = CMD_AHORRO;
                         xQueueSend(cola_pantalla,&msj_out,0);
                         estado_actual = REPOSO;
@@ -173,7 +161,7 @@ void task_fsm(void* taskParmPtr){
                            break;//por si llega un ev_cambio_peso por ejemplo no te vas de calibracion.
                            } 
                         estado_actual = ESTADO_REPOSO;
-                        msj_pantalla msj_out;
+                        msj_out;
                         msj_out.evento = CMD_DIBUJAR_EXITO_AHORRO; //debe indicar que salio bien y apagarse
                         xQueueSend(cola_pantalla,&msj_out,0)         
                                

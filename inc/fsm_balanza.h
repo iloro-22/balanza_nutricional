@@ -29,8 +29,8 @@ typedef enum {
     CMD_MOSTRAR_SOLO_PESO,       // Actualiza los gramos grandes en el centro
     CMD_MOSTRAR_MACROSyPESO,     // Dibuja la tabla nutricional + peso
     CMD_DIBUJAR_TARA,            // Muestra "Tarando, por favor espere..."
-    CMD_PEDIR_PESO,              // Muestra los 3 botones de calibración (100g, 500g, 1000g)
-    CMD_DIBUJAR_EXITO_AHORRO,    // Tilde verde de calibración exitosa y se apaga a los 3 seg
+    CMD_PEDIR_PESO,              // Muestra los 3 botones de calibraciï¿½n (100g, 500g, 1000g)
+    CMD_DIBUJAR_EXITO_AHORRO,    // Tilde verde de calibraciï¿½n exitosa y se apaga a los 3 seg
     CMD_AHORRO,                  // Apaga el backlight de una (Deep Sleep)
     CMD_ERROR                    // Pantalla roja gigante de SOBRECARGA
 } ComandoPantalla_t;
