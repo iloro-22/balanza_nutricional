@@ -129,7 +129,8 @@ typedef enum {
     UI_ESTADO_SELECCION_ALIMENTO,  // Grilla con los 6 alimentos + botón VOLVER
     UI_ESTADO_MODO_NUTRICIONAL,    // Peso + tabla de macros calculados
     UI_ESTADO_TARA,                // Cartel temporal "Tarando, por favor espere..."
-    UI_ESTADO_ERROR                // Cartel de advertencia / sobrecarga
+    UI_ESTADO_ERROR,                // Cartel de advertencia / sobrecarga
+    UI_ESTADO_CALIBRACION
 } EstadoUI;
 
 /*Prototipos de funciones*/
