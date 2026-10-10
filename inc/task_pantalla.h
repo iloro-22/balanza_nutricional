@@ -7,6 +7,7 @@
 #include "ili9341.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "arbol_menu.h"
 #include "queue.h"
 #include "fsm_balanza.h"
 #include "xpt2046.h"
