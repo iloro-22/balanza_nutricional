@@ -58,16 +58,23 @@ void ui_marco_der(void) {
     ILI9341_drawRect(MENU_DER_X, MENU_DER_Y, MENU_DER_W, MENU_DER_H, ILI9341_COLOR_WHITE);
 }
 
-void ui_menu_derecha_seleccion_alimentos(EstadoUI estado) {
-    ILI9341_drawRect(BTN_ALIM1_X, BTN_ALIM1_Y, BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
-    ILI9341_drawRect(BTN_ALIM2_X, BTN_ALIM2_Y, BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
-    ILI9341_drawRect(BTN_ALIM3_X, BTN_ALIM3_Y, BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
-    ILI9341_drawRect(BTN_ALIM4_X, BTN_ALIM4_Y, BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
-    /*Falta implementar el arbol del menú y ahi se cambia el texto por el string que almecene el nodo*/
-    ILI9341_drawString(TXT_ALIM1_X, TXT_ALIM1_Y, "ALIM 1", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE); 
-    ILI9341_drawString(TXT_ALIM2_X, TXT_ALIM2_Y, "ALIM 2", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
-    ILI9341_drawString(TXT_ALIM3_X, TXT_ALIM3_Y, "ALIM 3", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
-    ILI9341_drawString(TXT_ALIM4_X, TXT_ALIM4_Y, "ALIM 4", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+void ui_menu_derecha_seleccion_alimentos(const NodoMenu_t *nodo) {
+    // Coordenadas fijas de las 4 cajas de la grilla 2x2
+    const uint16_t pos_x[1] = { BTN_ALIM1_X, BTN_ALIM2_X, BTN_ALIM3_X, BTN_ALIM4_X };
+    const uint16_t pos_y[1] = { BTN_ALIM1_Y, BTN_ALIM2_Y, BTN_ALIM3_Y, BTN_ALIM4_Y };
+    const uint16_t txt_x[1] = { TXT_ALIM1_X, TXT_ALIM2_X, TXT_ALIM3_X, TXT_ALIM4_X };
+    const uint16_t txt_y[1] = { TXT_ALIM1_Y, TXT_ALIM2_Y, TXT_ALIM3_Y, TXT_ALIM4_Y };
+
+    for (int i = 0; i < 4; i++) {
+        if (i < nodo->cant_hijos) {
+            // Si el botón existe en este nivel, lo pintamos en blanco con su texto
+            ILI9341_fillRect(pos_x[i], pos_y[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
+            ILI9341_drawString(txt_x[i], txt_y[i], nodo->hijos[i]->nombre, ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+        } else {
+            // Si la categoría tiene menos de 4 hijos (ej. Carne tiene 3), borramos el botón sobrante
+            ILI9341_fillRect(pos_x[i], pos_y[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_BLACK);
+        }
+    }
 }
 
 void ui_menu_derecha_pesaje_normal(void) {

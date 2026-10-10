@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/include/c++/16/parallel",
-                "/usr/include/c++/16"
+                "/usr/include/c++/16",
+                "${workspaceFolder}/path/a/FreeRTOS/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
