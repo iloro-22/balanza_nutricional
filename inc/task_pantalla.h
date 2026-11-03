@@ -73,13 +73,13 @@
 #define MACRO_FILA_GRAS_Y       150
 
 // 4. Sector Inferior - Botoneras (Y: 198 a 238, Alto: 40 px)
-// Modo Pesaje Normal (2 botones anchos de 145 px)
+// Modo Pesaje Normal (3 botones)
 #define BTN_NORMAL_Y            198
 #define BTN_NORMAL_H            40
-#define BTN_MENU_ALIM_X         10
-#define BTN_MENU_ALIM_W         145
-#define BTN_NORMAL_TARA_X       165
-#define BTN_NORMAL_TARA_W       145
+#define BTN_NORMAL_W            95
+#define BTN_NORMAL_ALIM_X       10
+#define BTN_NORMAL_TARA_X       112
+#define BTN_NORMAL_CALIB_X      215
 
 // Modo Selección (1 botón ancho de cancelación de 300 px)
 #define BTN_SEL_VOLVER_X        10
@@ -97,9 +97,11 @@
 #define BTN_NUTRI_ENVIAR_X      215
 #define TXT_BOTONERA_Y          211
 
-// Modo Pesaje Normal (2 botones)
-#define TXT_NORMAL_ALIM_X       40      // "ALIMENTOS"
-#define TXT_NORMAL_TARA_X       210     // "TARA"
+// Modo Pesaje Normal (3 botones)
+#define TXT_NORMAL_Y            211
+#define TXT_NORMAL_ALIM_X       21      // "ALIMENTOS"
+#define TXT_NORMAL_TARA_X       143     // "TARA"
+#define TXT_NORMAL_CALIB_X      230     // "CALIBRAR"
 
 // Modo Selección (1 botón ancho)
 #define TXT_SEL_VOLVER_X        135     // "VOLVER"
@@ -120,6 +122,27 @@
 // Coordenadas de los textos dentro del cartel de Tara
 #define TXT_TARA_AVISO_X        140     // "TARANDO..."
 #define TXT_TARA_AVISO_Y        90
+#define TXT_TARA_ESPERE_X       125
+#define TXT_TARA_ESPERE_Y       115
+
+// Botones de calibración
+#define BTN_PATRON_Y            100
+#define BTN_PATRON_W            95
+#define BTN_PATRON_H            40
+#define BTN_PATRON_100G_X       10
+#define BTN_PATRON_500G_X       112
+#define BTN_PATRON_1000G_X      215
+#define TXT_PATRON_Y            113
+#define TXT_PATRON_100G_X       32
+#define TXT_PATRON_500G_X       132
+#define TXT_PATRON_1000G_X      225
+#define BTN_CALIB_CANCELAR_X    10
+#define BTN_CALIB_CANCELAR_Y    198
+#define BTN_CALIB_CANCELAR_W    300
+#define BTN_CALIB_CANCELAR_H    40
+#define TXT_CALIB_CANCELAR_X    120
+#define TXT_CALIB_CANCELAR_Y    211
+
 /*Enumerativo de los estados de la pantalla*/
 
 
@@ -140,8 +163,8 @@ void ui_marco_izq(void);
 void ui_peso(float peso);
 void ui_marco_der(void);
 void ui_menu_derecha_pesaje_normal(void);
-void ui_menu_derecha_seleccion_alimentos(void);
-void ui_menu_derecha_macros(const uint16_t macros); /*Aca habría que poner el struct que corresponde a las macros*/
+void ui_menu_derecha_seleccion_alimentos(const NodoMenu_t *nodo, uint8_t offset);
+void ui_menu_derecha_macros(informacion_alimento macros);
 void ui_dibujar_encabezado(const char *titulo);
 void ui_dibujar_botonera(EstadoUI estado);
 void ui_pantalla_reposo(void);

@@ -1,173 +1,156 @@
-
-
-/**
- * Tarea principal de la M�quina de Estados (FSM).
- * Se bloquea esperando mensajes en la cola y ejecuta las transiciones
- * de la balanza bas�ndose en los eventos del sensor y la interfaz.
- */
-
-
-#include "fsm_balanza.h" 
+#include "fsm_balanza.h"
 #include "FreeRTOS.h"
-#include "task.h"
 #include "queue.h"
-#include "pantalla_spi.h"
+#include "task.h"
 
 extern TaskHandle_t handle_sensor_peso;
 extern QueueHandle_t cola_eventos;
 extern QueueHandle_t cola_pantalla;
 
-void task_fsm(void* taskParmPtr){
-   MensajeFSM msj;
-   uint8_t id_alimento = 0;
-   EstadoBalanza estado_actual = REPOSO;
-   informacion_alimento kcal_alimento;
-   msj_pantalla msj_out;
-   while(1){
-      
-      //La tarea se duerme aca hasta que alguien mande un msj
-      if (xQueueReceive(cola_eventos, &msj, portMAX_DELAY) == pdTRUE){
-         
-         //maxima prioridad al error
-         if (msj.evento == EV_SOBRECARGA){
+static void enviar_comando_pantalla(ComandoPantalla_t evento,
+                                    float peso,
+                                    const informacion_alimento *macros)
+{
+    msj_pantalla mensaje = {0};
+    mensaje.evento = evento;
+    mensaje.peso = peso;
+
+    if (macros != NULL) {
+        mensaje.kcal_alimento = *macros;
+    }
+
+    xQueueSend(cola_pantalla, &mensaje, portMAX_DELAY);
+}
+
+static uint16_t peso_patron_calibracion(const MensajeFSM *mensaje)
+{
+    switch (mensaje->evento) {
+        case EV_BOTON_100G:
+            return 100;
+        case EV_BOTON_500G:
+            return 500;
+        case EV_BOTON_1000G:
+            return 1000;
+        case EV_FIN_CALIBRACION:
+            return (uint16_t)mensaje->valor_peso;
+        default:
+            return 0;
+    }
+}
+
+void task_fsm(void *taskParmPtr)
+{
+    (void)taskParmPtr;
+
+    MensajeFSM mensaje;
+    EstadoBalanza estado_actual = REPOSO;
+    uint8_t id_alimento = 0;
+    informacion_alimento macros = {0};
+
+    for (;;) {
+        if (xQueueReceive(cola_eventos, &mensaje, portMAX_DELAY) != pdTRUE) {
+            continue;
+        }
+
+        if (mensaje.evento == EV_SOBRECARGA) {
             estado_actual = ESTADO_ERROR;
-            }
-      
-         switch (estado_actual) {
-            
-               case REPOSO:
-                  
-                  if (msj.evento == EV_TOQUE_PANTALLA){
+        }
 
-                        msj_out.evento = CMD_MOSTRAR_SOLO_PESO;
-                        msj_out.peso = msj.valor_peso;
-                        xQueueSend(cola_pantalla,&msj_out,0);
-                        vTaskResume(handle_sensor_peso);
+        switch (estado_actual) {
+            case REPOSO:
+                if (mensaje.evento == EV_TOQUE_PANTALLA) {
+                    enviar_comando_pantalla(CMD_MOSTRAR_SOLO_PESO,
+                                            mensaje.valor_peso, NULL);
+                    vTaskResume(handle_sensor_peso);
+                    estado_actual = PESAJE_NORMAL;
+                }
+                break;
+
+            case PESAJE_NORMAL:
+                if (mensaje.evento == EV_CAMBIO_PESO) {
+                    enviar_comando_pantalla(CMD_MOSTRAR_SOLO_PESO,
+                                            mensaje.valor_peso, NULL);
+                } else if (mensaje.evento == EV_ALIMENTO) {
+                    id_alimento = mensaje.id_alimento;
+                    estado_actual = MODO_NUTRICIONAL;
+                    macros = calcular_macros(id_alimento, mensaje.valor_peso);
+                    enviar_comando_pantalla(CMD_MOSTRAR_MACROSyPESO,
+                                            mensaje.valor_peso, &macros);
+                } else if (mensaje.evento == EV_TARA) {
+                    hx711_tara();
+                    macros = (informacion_alimento){0};
+                    enviar_comando_pantalla(CMD_MOSTRAR_SOLO_PESO, 0.0f,
+                                            &macros);
+                } else if (mensaje.evento == EV_TIMEOUT) {
+                    enviar_comando_pantalla(CMD_AHORRO, 0.0f, NULL);
+                    vTaskSuspend(handle_sensor_peso);
+                    estado_actual = REPOSO;
+                } else if (mensaje.evento == EV_INICIAR_CALIBRACION) {
+                    estado_actual = CALIBRACION;
+                    enviar_comando_pantalla(CMD_DIBUJAR_TARA, 0.0f, NULL);
+                    vTaskDelay(pdMS_TO_TICKS(2000));
+                    hx711_tara();
+                    enviar_comando_pantalla(CMD_PEDIR_PESO, 0.0f, NULL);
+                }
+                break;
+
+            case MODO_NUTRICIONAL:
+                if (mensaje.evento == EV_CAMBIO_PESO ||
+                    mensaje.evento == EV_ALIMENTO) {
+                    if (mensaje.evento == EV_ALIMENTO) {
+                        id_alimento = mensaje.id_alimento;
+                    }
+                    macros = calcular_macros(id_alimento, mensaje.valor_peso);
+                    enviar_comando_pantalla(CMD_MOSTRAR_MACROSyPESO,
+                                            mensaje.valor_peso, &macros);
+                    esp_enviar_macros(id_alimento, mensaje.valor_peso, macros);
+                } else if (mensaje.evento == EV_TARA) {
+                    hx711_tara();
+                    enviar_comando_pantalla(CMD_MOSTRAR_MACROSyPESO, 0.0f,
+                                            &macros);
+                } else if (mensaje.evento == EV_VOLVER) {
+                    estado_actual = PESAJE_NORMAL;
+                } else if (mensaje.evento == EV_TIMEOUT) {
+                    enviar_comando_pantalla(CMD_AHORRO, 0.0f, NULL);
+                    vTaskSuspend(handle_sensor_peso);
+                    estado_actual = REPOSO;
+                } else if (mensaje.evento == EV_INICIAR_CALIBRACION) {
+                    estado_actual = CALIBRACION;
+                    enviar_comando_pantalla(CMD_DIBUJAR_TARA, 0.0f, NULL);
+                    vTaskDelay(pdMS_TO_TICKS(2000));
+                    hx711_tara();
+                    enviar_comando_pantalla(CMD_PEDIR_PESO, 0.0f, NULL);
+                }
+                break;
+
+            case CALIBRACION:
+                if (mensaje.evento == EV_FIN_CALIBRACION ||
+                    mensaje.evento == EV_BOTON_100G ||
+                    mensaje.evento == EV_BOTON_500G ||
+                    mensaje.evento == EV_BOTON_1000G) {
+                    uint16_t peso_patron = peso_patron_calibracion(&mensaje);
+                    if (peso_patron > 0) {
+                        hx711_CalibrarEscala(peso_patron);
+                        enviar_comando_pantalla(CMD_DIBUJAR_EXITO_AHORRO,
+                                                0.0f, NULL);
                         estado_actual = PESAJE_NORMAL;
+                    }
+                } else if (mensaje.evento == EV_VOLVER) {
+                    estado_actual = PESAJE_NORMAL;
+                    enviar_comando_pantalla(CMD_MOSTRAR_SOLO_PESO, 0.0f, NULL);
+                }
+                break;
 
-                     }
-                  break;
-                     
-               case PESAJE_NORMAL:
-                  if ((msj.evento == EV_CAMBIO_PESO) ){
-                     
-                      msj_out;
-                      msj_out.evento = CMD_MOSTRAR_SOLO_PESO;
-                      msj_out.peso = msj.valor_peso;
-                      xQueueSend(cola_pantalla,&msj_out,0);
-                    
-                     }
-                  else if (msj.evento == EV_ALIMENTO){
-                     //guardar_id_alimento_actual(msj.id_alimento);
-                     estado_actual = MODO_NUTRICIONAL;
-                     }
-                  else if (msj.evento ==  EV_TARA ){
-                           hx711_tara();
-                           msj_out;
-                           informacion_alimento macros_cero = {0,0,0,0};
-                           msj_out.kcal_alimento = macros_cero;
-                           msj_out.evento = CMD_MOSTRAR_SOLO_PESO;
-                           msj_out.peso = 0.0;
-                           xQueueSend(cola_pantalla,&msj_out,0);
-                  }
-                   else if (msj.evento == EV_TIMEOUT){
-                        offset_tara = 0.0;
-                        msj_out;
-                        msj_out.evento = CMD_AHORRO;
-                       xQueueSend(cola_pantalla,&msj_out,0);
-                       vTaskSuspend(handle_sensor_peso);
-                        estado_actual = REPOSO;
-                     }
-                     else if (msj.evento == EV_INICIAR_CALIBRACION) {
-                        estado_actual = ESTADO_CALIBRACION;
-                        msj_out;
-                        msj_out.evento = CMD_PEDIR_PESO;
-                        xQueueSend(cola_pantalla,&msj_out,0);
-            }
-                  break;
-                     
-               case MODO_NUTRICIONAL:
-                  
-                  if ((msj.evento == EV_CAMBIO_PESO) || (msj.evento == EV_ALIMENTO)){
+            case ESTADO_ERROR:
+                enviar_comando_pantalla(CMD_ERROR, 0.0f, NULL);
+                if (mensaje.evento == EV_RETIRA_PESO) {
+                    enviar_comando_pantalla(CMD_AHORRO, 0.0f, NULL);
+                    estado_actual = REPOSO;
+                }
+                break;
 
-                     if (msj.evento == EV_ALIMENTO) { 
-                        id_alimento = msj.id_alimento);
-                      }
-                      kcal_alimento = calcular_macros(msj.id_alimento, msj.valor_peso);
-                      msj_out;
-                      msj_out.evento = CMD_MOSTRAR_MACROSyPESO;
-                      msj_out.peso = msj.valor_peso;
-                      xQueueSend(cola_pantalla,&msj_out,0);
-                      esp_enviar_macros(id_alimento,msj.valor_peso, kcal_alimento);
-                  }
-                  else if (msj.evento ==  EV_TARA ){
-                          hx711_tara();
-                          msj_out;
-                          msj_out.evento = CMD_MOSTRAR_MACROSyPESO;
-                          msj_out.kcal_alimento = kcal_alimento;
-                          msj_out.peso = 0;
-                          xQueueSend(cola_pantalla,&msj_out,0);
-                  }
-                  else if (msj.evento == EV_VOLVER){
-                     estado_actual = PESAJE_NORMAL;
-                  } 
-                  else if (msj.evento == EV_TIMEOUT){
-                        msj_out;
-                        msj_out.evento = CMD_AHORRO;
-                        xQueueSend(cola_pantalla,&msj_out,0);
-                        vTaskSuspend(handle_sensor_peso);
-                        estado_actual = REPOSO;
-                        }
-                  else if (msj.evento == EV_INICIAR_CALIBRACION) {
-                     estado_actual = ESTADO_CALIBRACION;
-                     
-                     // la pantalla dibuja "Por favor suelte la pantalla, tarando..."
-                      xQueueSend(cola_Pantalla, DIBUJAR_TARA, 0); 
-                      
-                      // le da 2 segundos al usuario para que saque la mano y la balanza se estabilice
-                      vTaskDelay(pdMS_TO_TICKS(2000));
-                      
-                      //tara autom�ticamente por defecto
-                      hx711_tara(); 
-                      
-                      //le manda a la pantalla que pida el peso guia
-                      msj_out;
-                      msj_out.evento = CMD_PEDIR_PESO;
-                      xQueueSend(cola_pantalla,&msj_out,0);
-            }
-            break;
-               case  ESTADO_ERROR:
-                       msj_out;
-                       msj_out.evento = CMD_ERROR;
-                       xQueueSend(cola_pantalla,&msj_out,0);
-                     if (msj.evento == EV_RETIRA_PESO){
-                        msj_out;
-                        msj_out.evento = CMD_AHORRO;
-                        xQueueSend(cola_pantalla,&msj_out,0);
-                        estado_actual = REPOSO;
-                     }
-                  break;
-                 case  CALIBRACION:
-                         if (msj.evento == EV_BOTON_100G){
-                           hx711_CalibrarEscala(100);
-                        }
-                        else if (msj.evento == EV_BOTON_500G){
-                           hx711_CalibrarEscala(500);
-                        }
-                        else if (msj.evento == EV_BOTON_1000G){
-                           hx711_CalibrarEscala(1000);
-                        }
-                        else {
-                           break;//por si llega un ev_cambio_peso por ejemplo no te vas de calibracion.
-                           } 
-                        estado_actual = ESTADO_REPOSO;
-                        msj_out;
-                        msj_out.evento = CMD_DIBUJAR_EXITO_AHORRO; //debe indicar que salio bien y apagarse
-                        xQueueSend(cola_pantalla,&msj_out,0)         
-                               
-                  break;
-                  
-         }
-      }
-   }
+            case TARA:
+                break;
+        }
+    }
 }

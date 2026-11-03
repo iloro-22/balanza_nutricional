@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "alimentos.h"
 #include "calculo_nutricional.h"
+#include "sensor_peso.h"   // Para hx711_tara() y hx711_CalibrarEscala()
+#include "esp32_uart.h"    // Para esp_enviar_macros()
 typedef enum {
    REPOSO,
    PESAJE_NORMAL,
@@ -22,7 +24,10 @@ typedef enum {
    EV_VOLVER = 7,
    EV_INICIAR_CALIBRACION = 8,
    EV_FIN_CALIBRACION = 9,
-   EV_TOQUE_PANTALLA = 10
+   EV_TOQUE_PANTALLA = 10,
+   EV_BOTON_100G = 11,
+   EV_BOTON_500G = 12,
+   EV_BOTON_1000G = 13
 } EventoBalanza;
 
 typedef enum {

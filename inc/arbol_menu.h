@@ -9,7 +9,7 @@ typedef struct NodoMenu {
     uint8_t id_alimento;              // ID único para la FSM (0 si es una categoría intermedia)
     bool es_hoja;                     // true: alimento final | false: categoría con submenú
     struct NodoMenu *padre;           // Puntero al nivel anterior (para el botón VOLVER)
-    struct NodoMenu *hijos[1];        // Hasta 4 botones por pantalla (grilla 2x2)
+    struct NodoMenu *hijos[4];        // Hasta 4 botones por pantalla (grilla 2x2)
     uint8_t cant_hijos;               // Cantidad real de opciones en este nivel
 } NodoMenu_t;
 

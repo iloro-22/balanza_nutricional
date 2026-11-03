@@ -3,55 +3,55 @@
 
 void ui_peso(float peso) {
     char buffer[20];
-    ILI9341_fillRect(PESO_DIGITOS_X, PESO_DIGITOS_Y, PESO_DIGITOS_W, PESO_DIGITOS_H, ILI9341_COLOR_BLACK);
+    ILI9341_fillRect(PESO_DIGITOS_X, PESO_DIGITOS_Y, PESO_DIGITOS_W, PESO_DIGITOS_H, ILI9341_BLACK);
     snprintf(buffer, sizeof(buffer), "%.2f", peso);
-    ILI9341_drawString(PESO_DIGITOS_X, PESO_DIGITOS_Y, buffer, ILI9341_COLOR_WHITE, ILI9341_COLOR_BLACK);
+    ILI9341_drawString(PESO_DIGITOS_X, PESO_DIGITOS_Y, buffer, ILI9341_WHITE, ILI9341_BLACK);
 }
 
 void ui_pantalla_reposo(void) {
-    ILI9341_fillScreen(ILI9341_COLOR_BLACK);
+    ILI9341_fillScreen(ILI9341_BLACK);
 }
 
 void ui_pantalla_pesaje_base(float peso_actual) {
-    ILI9341_fillRect(0, 0, ILI9341_WIDTH, ILI9341_HEIGHT, ILI9341_COLOR_BLACK);
+    ILI9341_fillRect(0, 0, ILI9341_WIDTH, ILI9341_HEIGHT, ILI9341_BLACK);
     ui_marco_izq();
-    ILI9341_drawString(HEADER_TEXT_X, PESO_TITULO_Y, "PESO", ILI9341_COLOR_WHITE, ILI9341_COLOR_BLACK);
-    ILI9341_drawString(HEADER_TEXT_X, PESO_UNIDAD_Y, "g", ILI9341_COLOR_WHITE, ILI9341_COLOR_BLACK);
+    ILI9341_drawString(HEADER_TEXT_X, PESO_TITULO_Y, "PESO", ILI9341_WHITE, ILI9341_BLACK);
+    ILI9341_drawString(HEADER_TEXT_X, PESO_UNIDAD_Y, "g", ILI9341_WHITE, ILI9341_BLACK);
     ui_peso(peso_actual);
 }
 
 void ui_dibujar_encabezado(const char *titulo) {
-    ILI9341_fillRect(HEADER_X, HEADER_Y, HEADER_W, HEADER_H, ILI9341_COLOR_WHITE);
-    ILI9341_drawString(HEADER_TEXT_X, HEADER_TEXT_Y, titulo, ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_fillRect(HEADER_X, HEADER_Y, HEADER_W, HEADER_H, ILI9341_WHITE);
+    ILI9341_drawString(HEADER_TEXT_X, HEADER_TEXT_Y, titulo, ILI9341_BLACK, ILI9341_WHITE);
 }
 
 void ui_dibujar_botonera(EstadoUI estado) {
     switch (estado) {
         case UI_ESTADO_PESAJE_NORMAL:
-            ILI9341_fillRect(BTN_NORMAL_ALIM_X, BTN_NORMAL_Y, BTN_NORMAL_W, BTN_NORMAL_H, ILI9341_COLOR_WHITE);
-            ILI9341_drawString(TXT_NORMAL_ALIM_X, TXT_NORMAL_Y, "ALIMENTOS", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+            ILI9341_fillRect(BTN_NORMAL_ALIM_X, BTN_NORMAL_Y, BTN_NORMAL_W, BTN_NORMAL_H, ILI9341_WHITE);
+            ILI9341_drawString(TXT_NORMAL_ALIM_X, TXT_NORMAL_Y, "ALIMENTOS", ILI9341_BLACK, ILI9341_WHITE);
 
-            ILI9341_fillRect(BTN_NORMAL_TARA_X, BTN_NORMAL_Y, BTN_NORMAL_W, BTN_NORMAL_H, ILI9341_COLOR_WHITE);
-            ILI9341_drawString(TXT_NORMAL_TARA_X, TXT_NORMAL_Y, "TARA", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+            ILI9341_fillRect(BTN_NORMAL_TARA_X, BTN_NORMAL_Y, BTN_NORMAL_W, BTN_NORMAL_H, ILI9341_WHITE);
+            ILI9341_drawString(TXT_NORMAL_TARA_X, TXT_NORMAL_Y, "TARA", ILI9341_BLACK, ILI9341_WHITE);
 
-            ILI9341_fillRect(BTN_NORMAL_CALIB_X, BTN_NORMAL_Y, BTN_NORMAL_W, BTN_NORMAL_H, ILI9341_COLOR_WHITE);
-            ILI9341_drawString(TXT_NORMAL_CALIB_X, TXT_NORMAL_Y, "CALIBRAR", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+            ILI9341_fillRect(BTN_NORMAL_CALIB_X, BTN_NORMAL_Y, BTN_NORMAL_W, BTN_NORMAL_H, ILI9341_WHITE);
+            ILI9341_drawString(TXT_NORMAL_CALIB_X, TXT_NORMAL_Y, "CALIBRAR", ILI9341_BLACK, ILI9341_WHITE);
             break;
 
         case UI_ESTADO_SELECCION_ALIMENTO:
-            ILI9341_fillRect(BTN_SEL_VOLVER_X, BTN_SEL_VOLVER_Y, BTN_SEL_VOLVER_W, BTN_SEL_VOLVER_H, ILI9341_COLOR_WHITE);
-            ILI9341_drawString(TXT_SEL_VOLVER_X, TXT_BOTONERA_Y, "VOLVER", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+            ILI9341_fillRect(BTN_SEL_VOLVER_X, BTN_SEL_VOLVER_Y, BTN_SEL_VOLVER_W, BTN_SEL_VOLVER_H, ILI9341_WHITE);
+            ILI9341_drawString(TXT_SEL_VOLVER_X, TXT_BOTONERA_Y, "VOLVER", ILI9341_BLACK, ILI9341_WHITE);
             break;
 
         case UI_ESTADO_MODO_NUTRICIONAL:
-            ILI9341_fillRect(BTN_NUTRI_VOLVER_X, BTN_NUTRI_Y, BTN_NUTRI_W, BTN_NUTRI_H, ILI9341_COLOR_WHITE);
-            ILI9341_drawString(TXT_NUTRI_VOLVER_X, TXT_BOTONERA_Y, "VOLVER", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+            ILI9341_fillRect(BTN_NUTRI_VOLVER_X, BTN_NUTRI_Y, BTN_NUTRI_W, BTN_NUTRI_H, ILI9341_WHITE);
+            ILI9341_drawString(TXT_NUTRI_VOLVER_X, TXT_BOTONERA_Y, "VOLVER", ILI9341_BLACK, ILI9341_WHITE);
 
-            ILI9341_fillRect(BTN_NUTRI_TARA_X, BTN_NUTRI_Y, BTN_NUTRI_W, BTN_NUTRI_H, ILI9341_COLOR_WHITE);
-            ILI9341_drawString(TXT_NUTRI_TARA_X, TXT_BOTONERA_Y, "TARA", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+            ILI9341_fillRect(BTN_NUTRI_TARA_X, BTN_NUTRI_Y, BTN_NUTRI_W, BTN_NUTRI_H, ILI9341_WHITE);
+            ILI9341_drawString(TXT_NUTRI_TARA_X, TXT_BOTONERA_Y, "TARA", ILI9341_BLACK, ILI9341_WHITE);
 
-            ILI9341_fillRect(BTN_NUTRI_ENVIAR_X, BTN_NUTRI_Y, BTN_NUTRI_W, BTN_NUTRI_H, ILI9341_COLOR_WHITE);
-            ILI9341_drawString(TXT_NUTRI_ENVIAR_X, TXT_BOTONERA_Y, "ENVIAR", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+            ILI9341_fillRect(BTN_NUTRI_ENVIAR_X, BTN_NUTRI_Y, BTN_NUTRI_W, BTN_NUTRI_H, ILI9341_WHITE);
+            ILI9341_drawString(TXT_NUTRI_ENVIAR_X, TXT_BOTONERA_Y, "ENVIAR", ILI9341_BLACK, ILI9341_WHITE);
             break;
 
         default:
@@ -60,11 +60,11 @@ void ui_dibujar_botonera(EstadoUI estado) {
 }
 
 void ui_marco_izq(void) {
-    ILI9341_fillRect(PESO_BOX_X, PESO_BOX_Y, PESO_BOX_W, PESO_BOX_H, ILI9341_COLOR_WHITE);
+    ILI9341_fillRect(PESO_BOX_X, PESO_BOX_Y, PESO_BOX_W, PESO_BOX_H, ILI9341_WHITE);
 }
 
 void ui_marco_der(void) {
-    ILI9341_fillRect(MENU_DER_X, MENU_DER_Y, MENU_DER_W, MENU_DER_H, ILI9341_COLOR_WHITE);
+    ILI9341_fillRect(MENU_DER_X, MENU_DER_Y, MENU_DER_W, MENU_DER_H, ILI9341_WHITE);
 }
 
 void ui_menu_derecha_seleccion_alimentos(const NodoMenu_t *nodo, uint8_t offset) {
@@ -76,71 +76,71 @@ void ui_menu_derecha_seleccion_alimentos(const NodoMenu_t *nodo, uint8_t offset)
     if (nodo->cant_hijos <= 4) {
         for (int i = 0; i < 4; i++) {
             if (i < nodo->cant_hijos) {
-                ILI9341_fillRect(bx[i], by[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
-                ILI9341_drawString(tx[i], ty[i], nodo->hijos[i]->nombre, ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+                ILI9341_fillRect(bx[i], by[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_WHITE);
+                ILI9341_drawString(tx[i], ty[i], nodo->hijos[i]->nombre, ILI9341_BLACK, ILI9341_WHITE);
             } else {
-                ILI9341_fillRect(bx[i], by[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_BLACK);
+                ILI9341_fillRect(bx[i], by[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_BLACK);
             }
         }
     } else {
         for (int i = 0; i < 3; i++) {
             uint8_t idx = offset + i;
             if (idx < nodo->cant_hijos) {
-                ILI9341_fillRect(bx[i], by[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
-                ILI9341_drawString(tx[i], ty[i], nodo->hijos[idx]->nombre, ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+                ILI9341_fillRect(bx[i], by[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_WHITE);
+                ILI9341_drawString(tx[i], ty[i], nodo->hijos[idx]->nombre, ILI9341_BLACK, ILI9341_WHITE);
             } else {
-                ILI9341_fillRect(bx[i], by[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_BLACK);
+                ILI9341_fillRect(bx[i], by[i], BTN_ALIM_W, BTN_ALIM_H, ILI9341_BLACK);
             }
         }
-        ILI9341_fillRect(bx[3], by[3], BTN_ALIM_W, BTN_ALIM_H, ILI9341_COLOR_WHITE);
-        ILI9341_drawString(tx[3], ty[3], "MAS >>", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+        ILI9341_fillRect(bx[3], by[3], BTN_ALIM_W, BTN_ALIM_H, ILI9341_WHITE);
+        ILI9341_drawString(tx[3], ty[3], "MAS >>", ILI9341_BLACK, ILI9341_WHITE);
     }
 }
 
 void ui_menu_derecha_macros(informacion_alimento macros) {
     char buffer[16];
-    ILI9341_fillRect(TXT_MACRO_VALOR_X, 40, 100, 140, ILI9341_COLOR_WHITE);
+    ILI9341_fillRect(TXT_MACRO_VALOR_X, 40, 100, 140, ILI9341_WHITE);
 
     snprintf(buffer, sizeof(buffer), "%.1f kcal", macros.calorias);
-    ILI9341_drawString(TXT_MACRO_VALOR_X, MACRO_FILA_KCAL_Y, buffer, ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_drawString(TXT_MACRO_VALOR_X, MACRO_FILA_KCAL_Y, buffer, ILI9341_BLACK, ILI9341_WHITE);
 
     snprintf(buffer, sizeof(buffer), "%.1f g", macros.proteinas);
-    ILI9341_drawString(TXT_MACRO_VALOR_X, MACRO_FILA_PROT_Y, buffer, ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_drawString(TXT_MACRO_VALOR_X, MACRO_FILA_PROT_Y, buffer, ILI9341_BLACK, ILI9341_WHITE);
 
     snprintf(buffer, sizeof(buffer), "%.1f g", macros.grasas);
-    ILI9341_drawString(TXT_MACRO_VALOR_X, MACRO_FILA_GRAS_Y, buffer, ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_drawString(TXT_MACRO_VALOR_X, MACRO_FILA_GRAS_Y, buffer, ILI9341_BLACK, ILI9341_WHITE);
 
     snprintf(buffer, sizeof(buffer), "%.1f g", macros.carbohidratos);
-    ILI9341_drawString(TXT_MACRO_VALOR_X, MACRO_FILA_CARB_Y, buffer, ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_drawString(TXT_MACRO_VALOR_X, MACRO_FILA_CARB_Y, buffer, ILI9341_BLACK, ILI9341_WHITE);
 }
 
 void ui_pantalla_calibracion(void) {
-    ILI9341_fillScreen(ILI9341_COLOR_BLACK);
+    ILI9341_fillScreen(ILI9341_BLACK);
     ui_dibujar_encabezado("MODO CALIBRACION");
-    ILI9341_drawString(20, 50, "Apoye el peso patron y seleccione:", ILI9341_COLOR_WHITE, ILI9341_COLOR_BLACK);
+    ILI9341_drawString(20, 50, "Apoye el peso patron y seleccione:", ILI9341_WHITE, ILI9341_BLACK);
 
-    ILI9341_fillRect(BTN_PATRON_100G_X, BTN_PATRON_Y, BTN_PATRON_W, BTN_PATRON_H, ILI9341_COLOR_WHITE);
-    ILI9341_drawString(TXT_PATRON_100G_X, TXT_PATRON_Y, "100 g", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_fillRect(BTN_PATRON_100G_X, BTN_PATRON_Y, BTN_PATRON_W, BTN_PATRON_H, ILI9341_WHITE);
+    ILI9341_drawString(TXT_PATRON_100G_X, TXT_PATRON_Y, "100 g", ILI9341_BLACK, ILI9341_WHITE);
 
-    ILI9341_fillRect(BTN_PATRON_500G_X, BTN_PATRON_Y, BTN_PATRON_W, BTN_PATRON_H, ILI9341_COLOR_WHITE);
-    ILI9341_drawString(TXT_PATRON_500G_X, TXT_PATRON_Y, "500 g", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_fillRect(BTN_PATRON_500G_X, BTN_PATRON_Y, BTN_PATRON_W, BTN_PATRON_H, ILI9341_WHITE);
+    ILI9341_drawString(TXT_PATRON_500G_X, TXT_PATRON_Y, "500 g", ILI9341_BLACK, ILI9341_WHITE);
 
-    ILI9341_fillRect(BTN_PATRON_1000G_X, BTN_PATRON_Y, BTN_PATRON_W, BTN_PATRON_H, ILI9341_COLOR_WHITE);
-    ILI9341_drawString(TXT_PATRON_1000G_X, TXT_PATRON_Y, "1000 g", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_fillRect(BTN_PATRON_1000G_X, BTN_PATRON_Y, BTN_PATRON_W, BTN_PATRON_H, ILI9341_WHITE);
+    ILI9341_drawString(TXT_PATRON_1000G_X, TXT_PATRON_Y, "1000 g", ILI9341_BLACK, ILI9341_WHITE);
 
-    ILI9341_fillRect(BTN_CALIB_CANCELAR_X, BTN_CALIB_CANCELAR_Y, BTN_CALIB_CANCELAR_W, BTN_CALIB_CANCELAR_H, ILI9341_COLOR_WHITE);
-    ILI9341_drawString(TXT_CALIB_CANCELAR_X, TXT_CALIB_CANCELAR_Y, "CANCELAR", ILI9341_COLOR_BLACK, ILI9341_COLOR_WHITE);
+    ILI9341_fillRect(BTN_CALIB_CANCELAR_X, BTN_CALIB_CANCELAR_Y, BTN_CALIB_CANCELAR_W, BTN_CALIB_CANCELAR_H, ILI9341_WHITE);
+    ILI9341_drawString(TXT_CALIB_CANCELAR_X, TXT_CALIB_CANCELAR_Y, "CANCELAR", ILI9341_BLACK, ILI9341_WHITE);
 }
 
 void ui_mostrar_error(const char *mensaje) {
-    ILI9341_fillRect(TARA_BOX_X, TARA_BOX_Y, TARA_BOX_W, TARA_BOX_H, ILI9341_COLOR_RED);
-    ILI9341_drawString(TXT_TARA_AVISO_X, TXT_TARA_AVISO_Y, mensaje, ILI9341_COLOR_WHITE, ILI9341_COLOR_RED);
+    ILI9341_fillRect(TARA_BOX_X, TARA_BOX_Y, TARA_BOX_W, TARA_BOX_H, ILI9341_RED);
+    ILI9341_drawString(TXT_TARA_AVISO_X, TXT_TARA_AVISO_Y, mensaje, ILI9341_WHITE, ILI9341_RED);
 }
 
 void ui_mostrar_tara(void) {
-    ILI9341_fillRect(TARA_BOX_X, TARA_BOX_Y, TARA_BOX_W, TARA_BOX_H, ILI9341_COLOR_BLUE);
-    ILI9341_drawString(TXT_TARA_AVISO_X, TXT_TARA_AVISO_Y, "TARANDO...", ILI9341_COLOR_WHITE, ILI9341_COLOR_BLUE);
-    ILI9341_drawString(TXT_TARA_ESPERE_X, TXT_TARA_ESPERE_Y, "Espere por favor", ILI9341_COLOR_WHITE, ILI9341_COLOR_BLUE);
+    ILI9341_fillRect(TARA_BOX_X, TARA_BOX_Y, TARA_BOX_W, TARA_BOX_H, ILI9341_BLUE);
+    ILI9341_drawString(TXT_TARA_AVISO_X, TXT_TARA_AVISO_Y, "TARANDO...", ILI9341_WHITE, ILI9341_BLUE);
+    ILI9341_drawString(TXT_TARA_ESPERE_X, TXT_TARA_ESPERE_Y, "Espere por favor", ILI9341_WHITE, ILI9341_BLUE);
 }
 
 void task_pantalla(void *pvParameters) {
@@ -265,7 +265,7 @@ void task_pantalla(void *pvParameters) {
                             if (idx < nodo_actual->cant_hijos) {
                                 NodoMenu_t *elegido = nodo_actual->hijos[idx];
                                 if (elegido->es_hoja) {
-                                    xQueueSend(cola_eventos, &(MensajeFSM){.evento = EV_ALIMENTO, .id_alimento = elegido->id_alimento}, 0);
+                                    xQueueSend(cola_eventos, &((MensajeFSM){.evento = EV_ALIMENTO, .id_alimento = elegido->id_alimento}), 0);
                                     nodo_actual = &arbol_raiz;
                                     offset_alimentos = 0;
                                 } else {
@@ -283,7 +283,7 @@ void task_pantalla(void *pvParameters) {
                             if (idx < nodo_actual->cant_hijos) {
                                 NodoMenu_t *elegido = nodo_actual->hijos[idx];
                                 if (elegido->es_hoja) {
-                                    xQueueSend(cola_eventos, &(MensajeFSM){.evento = EV_ALIMENTO, .id_alimento = elegido->id_alimento}, 0);
+                                    xQueueSend(cola_eventos, &((MensajeFSM){.evento = EV_ALIMENTO, .id_alimento = elegido->id_alimento}), 0);
                                     nodo_actual = &arbol_raiz;
                                     offset_alimentos = 0;
                                 } else {
@@ -301,7 +301,7 @@ void task_pantalla(void *pvParameters) {
                             if (idx < nodo_actual->cant_hijos) {
                                 NodoMenu_t *elegido = nodo_actual->hijos[idx];
                                 if (elegido->es_hoja) {
-                                    xQueueSend(cola_eventos, &(MensajeFSM){.evento = EV_ALIMENTO, .id_alimento = elegido->id_alimento}, 0);
+                                    xQueueSend(cola_eventos, &((MensajeFSM){.evento = EV_ALIMENTO, .id_alimento = elegido->id_alimento}), 0);
                                     nodo_actual = &arbol_raiz;
                                     offset_alimentos = 0;
                                 } else {
@@ -324,7 +324,7 @@ void task_pantalla(void *pvParameters) {
                             } else if (nodo_actual->cant_hijos == 4) {
                                 NodoMenu_t *elegido = nodo_actual->hijos[3];
                                 if (elegido->es_hoja) {
-                                    xQueueSend(cola_eventos, &(MensajeFSM){.evento = EV_ALIMENTO, .id_alimento = elegido->id_alimento}, 0);
+                                    xQueueSend(cola_eventos, &((MensajeFSM){.evento = EV_ALIMENTO, .id_alimento = elegido->id_alimento}), 0);
                                     nodo_actual = &arbol_raiz;
                                     offset_alimentos = 0;
                                 } else {
@@ -336,6 +336,7 @@ void task_pantalla(void *pvParameters) {
                             }
                         }
                         break;
+
 
                     case UI_ESTADO_MODO_NUTRICIONAL:
                         // Botonera inferior en Modo Nutricional (Y: 198 a 238)
@@ -354,11 +355,11 @@ void task_pantalla(void *pvParameters) {
                     case UI_ESTADO_CALIBRACION:
                         if (y >= BTN_PATRON_Y && y <= (BTN_PATRON_Y + BTN_PATRON_H)) {
                             if (x >= BTN_PATRON_100G_X && x <= (BTN_PATRON_100G_X + BTN_PATRON_W)) {
-                                xQueueSend(cola_eventos, &(MensajeFSM){.evento = EV_FIN_CALIBRACION, .valor_peso = 100.0f}, 0);
+                                xQueueSend(cola_eventos, &((MensajeFSM){.evento = EV_FIN_CALIBRACION, .valor_peso = 100.0f}), 0);
                             } else if (x >= BTN_PATRON_500G_X && x <= (BTN_PATRON_500G_X + BTN_PATRON_W)) {
-                                xQueueSend(cola_eventos, &(MensajeFSM){.evento = EV_FIN_CALIBRACION, .valor_peso = 500.0f}, 0);
+                                xQueueSend(cola_eventos, &((MensajeFSM){.evento = EV_FIN_CALIBRACION, .valor_peso = 500.0f}), 0);
                             } else if (x >= BTN_PATRON_1000G_X && x <= (BTN_PATRON_1000G_X + BTN_PATRON_W)) {
-                                xQueueSend(cola_eventos, &(MensajeFSM){.evento = EV_FIN_CALIBRACION, .valor_peso = 1000.0f}, 0);
+                                xQueueSend(cola_eventos, &((MensajeFSM){.evento = EV_FIN_CALIBRACION, .valor_peso = 1000.0f}), 0);
                             }
                         } else if (x >= BTN_CALIB_CANCELAR_X && x <= (BTN_CALIB_CANCELAR_X + BTN_CALIB_CANCELAR_W) &&
                                    y >= BTN_CALIB_CANCELAR_Y && y <= (BTN_CALIB_CANCELAR_Y + BTN_CALIB_CANCELAR_H)) {
