@@ -1,5 +1,5 @@
 #include "xpt2046.h"
-
+#include "ssp1.h"
 
 void XPT2046_init(void) {
     gpioInit(XPT2046_CS, GPIO_OUTPUT);
@@ -12,13 +12,27 @@ bool XPT2046_isPress(void) {
 }
 
 uint16_t XPT2046_mapX(uint16_t rawX) {
-    // Mapea el valor crudo de X a la resolución del display
-    return (rawX - XPT2046_RAW_X_MIN) * LCD_WIDTH / (XPT2046_RAW_X_MAX - XPT2046_RAW_X_MIN);
+    if (rawX <= XPT2046_RAW_X_MIN) {
+        return 0;
+    }
+    if (rawX >= XPT2046_RAW_X_MAX) {
+        return LCD_WIDTH - 1;
+    }
+
+    return (uint32_t)(rawX - XPT2046_RAW_X_MIN) * (LCD_WIDTH - 1) /
+           (XPT2046_RAW_X_MAX - XPT2046_RAW_X_MIN);
 }
 
 uint16_t XPT2046_mapY(uint16_t rawY) {
-    // Mapea el valor crudo de Y a la resolución del display
-    return (rawY - XPT2046_RAW_Y_MIN) * LCD_HEIGHT / (XPT2046_RAW_Y_MAX - XPT2046_RAW_Y_MIN);
+    if (rawY <= XPT2046_RAW_Y_MIN) {
+        return 0;
+    }
+    if (rawY >= XPT2046_RAW_Y_MAX) {
+        return LCD_HEIGHT - 1;
+    }
+
+    return (uint32_t)(rawY - XPT2046_RAW_Y_MIN) * (LCD_HEIGHT - 1) /
+           (XPT2046_RAW_Y_MAX - XPT2046_RAW_Y_MIN);
 }
 
 bool XPT2046_getTouch(uint16_t *x, uint16_t *y) {
@@ -42,9 +56,8 @@ bool XPT2046_getTouch(uint16_t *x, uint16_t *y) {
     rawX = rawX >> 3; // Ajustar el valor de X e Y, como el ADC es 12 bits, se hace un corrimiento a la derecha 
     rawY = rawY >> 3; // de 3 bits para obtener un valor de 0 a 4095
 
-    uint16_t mappedX = (uint16_t)map(rawX, XPT2046_RAW_X_MIN, XPT2046_RAW_X_MAX, 0, LCD_WIDTH - 1); 
-    /*Aplico la función que mapea las lecturas del ADC a los pixeles de la pantalla*/
-    uint16_t mappedY = (uint16_t)map(rawY, XPT2046_RAW_Y_MIN, XPT2046_RAW_Y_MAX, 0, LCD_HEIGHT - 1);
+    uint16_t mappedX = XPT2046_mapX(rawX);
+    uint16_t mappedY = XPT2046_mapY(rawY);
 
     #if XPT2046_INVERT_X
     mappedX = (LCD_WIDTH - 1) - mappedX;
