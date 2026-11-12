@@ -23,6 +23,8 @@
 #include "task.h"
 #include "queue.h"
 #define LIMITE_SOBRECARGA 5500.0
+#include "timers.h"
+TimerHandle_t timer_inactividad;.
 extern QueueHandle_t cola_eventos;
 
 int32_t hx711_leer_crudo();
@@ -66,12 +68,13 @@ void task_sensor_peso(void *taskParmPtr){
             if (diferencia < 0) {
                diferencia = -diferencia; //valor absoluto
                }
-               
             if (diferencia > 1.0){
+               
                msj.evento = EV_CAMBIO_PESO;
                peso_anterior = peso_actual;
                msj.valor_peso = peso_actual;   
                msj.id_alimento = 0;
+               xTimerReset(timer_inactividad,0);
                xQueueSend(cola_eventos,&msj,0);
             }
       }

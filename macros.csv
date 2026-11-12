@@ -1,5 +1,41 @@
 id,nombre,calorias,proteinas,carbohidratos,grasas
 0,Vacio,0,0,0,0
-1,Pollo,165,31.0,0.0,3.6
-2,Chipa Tradicional,340,12.0,35.0,18.0
-3,Masa Pizza Fermentada,250,8.5,49.0,1.2
+1,Pechuga de Pollo cruda,165,31.0,0.0,3.6
+2,Nalga Vacuna cruda,130,22.0,0.0,4.0
+3,Carne Picada Magra,178,21.0,0.0,10.0
+4,Solomillo de Cerdo,143,26.0,0.0,3.5
+5,Filet de Merluza,89,19.0,0.0,1.5
+6,Salmon Rosado,208,20.0,0.0,13.0
+7,Atun al Natural (escurrido),116,26.0,0.0,1.0
+8,Huevo Entero,155,13.0,1.1,11.0
+9,Clara de Huevo,52,11.0,0.7,0.2
+10,Leche Entera,61,3.2,4.8,3.3
+11,Queso Mozzarella,300,22.0,2.2,22.0
+12,Queso Pategras,360,25.0,2.0,28.0
+13,Queso Sardo,392,33.0,0.0,29.0
+14,Manteca,717,0.8,0.1,81.0
+15,Aceite de Oliva,884,0.0,0.0,100.0
+16,Harina de Trigo 0000,364,10.0,76.0,1.0
+17,Harina de Trigo Integral,340,13.0,72.0,2.5
+18,Almidon de Mandioca,350,0.5,86.0,0.1
+19,Levadura Fresca,105,8.0,18.0,1.9
+20,Avena Tradicional,389,16.9,66.0,6.9
+21,Arroz Blanco crudo,360,7.0,80.0,1.0
+22,Lentejas crudas,353,25.0,60.0,1.0
+23,Papa cruda,77,2.0,17.0,0.1
+24,Batata cruda,86,1.6,20.0,0.1
+25,Tomate Perita,18,0.9,3.9,0.2
+26,Cebolla Blanca,40,1.1,9.0,0.1
+27,Pimiento Morron,20,0.9,4.6,0.2
+28,Ajo crudo,149,6.4,33.0,0.5
+29,Zanahoria,41,0.9,10.0,0.2
+30,Lechuga,15,1.4,2.9,0.2
+31,Espinaca cruda,23,2.9,3.6,0.4
+32,Palta,160,2.0,8.5,15.0
+33,Banana,89,1.1,23.0,0.3
+34,Manzana,52,0.3,14.0,0.2
+35,Naranja,47,0.9,12.0,0.1
+36,Limon,29,1.1,9.3,0.3
+37,Frutilla,32,0.7,7.7,0.3
+38,Almendras,579,21.0,21.0,49.0
+39,Nueces,654,15.0,13.0,65.0
