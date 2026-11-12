@@ -5,5 +5,7 @@
 #define PIN_DOUT  GPIO1 //jay que reveer esto mas adelante
 
 void task_sensor_peso(void *taskParmPtr);
+void hx711_tara(void);
+void hx711_CalibrarEscala(float peso_conocido_g);
 
 #endif

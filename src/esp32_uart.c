@@ -9,12 +9,8 @@
 
 void esp_enviar_macros(uint8_t id_alimento, float peso, informacion_alimento datos){
    char buffer_salida[120];
-   snprintf(buffer_salida,sizeof(buffer_salida),
-      "ID:%d,K:%.1f,P:%.1f,C:%.1f,G:%.1f,\r\n",
-      id_alimento,
-      peso,
-      datos.proteinas,
-      datos.carbohidratos,
-      datos.grasas);
+  snprintf(buffer_salida, sizeof(buffer_salida),
+         "ID:%d,W:%.1f,K:%.1f,P:%.1f,C:%.1f,G:%.1f,\r\n",
+         id_alimento, peso, datos.calorias, datos.proteinas, datos.carbohidratos, datos.grasas);
    uartWriteString(UART_232,buffer_salida);
 }
